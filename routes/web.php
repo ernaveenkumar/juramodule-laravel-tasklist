@@ -66,20 +66,21 @@ Route::get('/', function () {
 
     return view('index',[
         //'tasks' => \App\Models\Task::all()   define at top like this use App\Models\Task; then we can use it like this Task
-        'tasks' => Task::latest()->where('completed',true)->get()
+        //'tasks' => Task::latest()->where('completed',true)->get()
+        'tasks' => Task::latest()->paginate()
     ]);
 })->name('tasks.index');
 
-Route::view('tasks/create', 'create')->name('tasks.create'); //display the form
+Route::view('/tasks/create', 'create')->name('tasks.create'); //display the form
 
-Route::get('tasks/{task}/edit', function(Task $task){
+Route::get('/tasks/{task}/edit', function(Task $task){
 
         return view(
             'edit',
             //data:['task'=> Task::findOrFail($id)]
-            [$task]
+            ['task' => $task]
         );
-        })->name('tasks.edit');
+})->name('tasks.edit');
 
 
 Route::get('/tasks/{task}', function(Task $task) {
@@ -88,11 +89,12 @@ Route::get('/tasks/{task}', function(Task $task) {
 })->name('tasks.show');
 
 
-Route::post('/tasks', function(TaskRequest $request){
-//Route::post('/task', function(Request $request){
+Route::post('/tasks', function(Task $task, TaskRequest $request){
+    //Route::post('/task', function(Request $request){
 
     //after using TaskRequest . To access the data
-    //$data = $request->validated();
+    $data = $request->validated();
+    //dd($data);
     //dd($request->all());
 
     // $data = $request->validate([
@@ -114,14 +116,13 @@ Route::post('/tasks', function(TaskRequest $request){
 
     return redirect()->route('tasks.show',['task' => $task->id ])-> with('success','Task created successfuly');
 
-
 })->name('tasks.store'); //On submit the form for new data
 
 //edit form will send data on this url
 // When using task request replace Request with TaskRequest
 //Route::put('tasks/{id}', function($id, Request $request){
-Route::put('tasks/{task}', function(Task $task, TaskRequest $request){
-
+Route::put('/tasks/{task}', function(Task $task, TaskRequest $request){
+    //var_dump($request);
      //after using TaskRequest . To access the data
      //and pass it directly to create method
 
@@ -129,7 +130,6 @@ Route::put('tasks/{task}', function(Task $task, TaskRequest $request){
 
      //validate the data. Now validating data with TaskRequest file
     //php artisan make:request TaskRequest
-
 
     // $data = $request->validate([
     //     'title' => 'required|max:255',
@@ -143,19 +143,20 @@ Route::put('tasks/{task}', function(Task $task, TaskRequest $request){
     // $task->long_description = $data['long_description'];
     // $task->save();
 
-
     //after using TaskRequest we can use Create method to save returned data from TaskRequest
     //
     //to use update we have to set the fillable properties
     $task->update( $request->validated());
 
-
-
-
     //redirect it
     return redirect()->route('tasks.show', ['task' => $task->id])->with('success', 'Task updated');
 })->name('tasks.update');
 
+Route::delete('/tasks/{task}', function(Task $task){
+    $task->delete();
+
+    return redirect()->route('tasks.index')->with('sucess','Task deleted');
+})->name('tasks.destroy');
 // Route::get('/xxx', function(){
 //     return 'Hello';
 // })->name('hello');
@@ -167,6 +168,17 @@ Route::put('tasks/{task}', function(Task $task, TaskRequest $request){
 // Route::get('hallo', function(){
 //     return redirect()->route('hello');
 // });
+
+
+
+Route::put('tasks/{task}/toggle-complete', function (Task $task){
+
+    // $task->completed = !$task->completed;
+    // $task->save();
+    $task->toggleCompleted();
+
+    return redirect()->back()->with('success', 'Task updatd');
+})->name('tasks.toggle-complete');
 
 Route::fallback(function(){
     return 'Still got somewhere';

@@ -11,7 +11,7 @@ class TaskRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -25,8 +25,7 @@ class TaskRequest extends FormRequest
             //copy paste validation rule from web.php
             'title' => 'required|max:255',
             'description' => 'required',
-            'long_description' => 'required',
-            'completed' => 1
+            'long_description' => 'required'
         ];
     }
 }
